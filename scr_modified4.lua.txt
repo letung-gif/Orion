@@ -5,7 +5,7 @@ local function LoadOrion()
         "https://raw.githubusercontent.com/x7ry/Library/main/OrionLib.lua",
         "https://raw.githubusercontent.com/shlexware/Orion/main/source",
         "https://raw.githubusercontent.com/GreenDeno/Garden/refs/heads/main/OrionLib.lua",
-        "https://raw.githubusercontent.com/MinhDuc19092007/TCP-DOWN/refs/heads/main/Orion_Aqua_Transparent.lua"
+        "https://raw.githubusercontent.com/letung-gif/Orion/refs/heads/main/source"
     }
     for _, url in ipairs(urls) do
         local suc, res = pcall(function()
