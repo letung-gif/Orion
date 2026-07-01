@@ -1,4 +1,4 @@
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/cakukloj-lab/No/refs/heads/main/Orion_Orange_Transparent_09_Small.lua.txt"))()
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/letung-gif/Orion/refs/heads/main/source"))()
 local Window = OrionLib:MakeWindow({
 	Name = "hideoutngu",
 	HidePremium = false,
