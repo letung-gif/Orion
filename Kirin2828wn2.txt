@@ -1,0 +1,892 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({
+    Name = "Nơi ẩn náu dinhgiap",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "AutoFarmConfig"
+})
+
+local Tab = Window:MakeTab({
+    Name = "Farm+Auto🍊",
+    Icon = "rbxassetid://4483362458",
+    PremiumOnly = false
+})
+
+
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Root = Character:WaitForChild("HumanoidRootPart")
+
+local EventMobFolder = workspace["World Mobs"]:WaitForChild("Event Mobs")
+local NormalMobFolder = workspace["World Mobs"]:WaitForChild("Mobs")
+
+local Radius = 1000
+local TargetCFrame = CFrame.new(-4.60398006, 674.831421, -22.0580673, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+
+local AutoBring = true -- MỞ SẴN
+
+Tab:AddToggle({
+	Name = "Tự động bring ",
+	Default = true,
+	Callback = function(Value)
+		AutoBring = Value
+	end
+})
+
+RunService.Heartbeat:Connect(function()
+	if not AutoBring then
+		return
+	end
+
+	pcall(function()
+		sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+	end)
+
+	for _, Mob in ipairs(EventMobFolder:GetChildren()) do
+		local Humanoid = Mob:FindFirstChildOfClass("Humanoid")
+		local MobRoot = Mob:FindFirstChild("HumanoidRootPart")
+
+		if Humanoid and MobRoot and Humanoid.Health > 0 then
+			if (MobRoot.Position - Root.Position).Magnitude <= Radius then
+				pcall(function()
+					MobRoot.CanCollide = false
+					MobRoot.Velocity = Vector3.zero
+					MobRoot.RotVelocity = Vector3.zero
+					MobRoot.CFrame = TargetCFrame
+				end)
+			end
+		end
+	end
+
+	for _, Mob in ipairs(NormalMobFolder:GetChildren()) do
+		local Humanoid = Mob:FindFirstChildOfClass("Humanoid")
+		local MobRoot = Mob:FindFirstChild("HumanoidRootPart")
+
+		if Humanoid and MobRoot and Humanoid.Health > 0 then
+			if (MobRoot.Position - Root.Position).Magnitude <= Radius then
+				pcall(function()
+					MobRoot.CanCollide = false
+					MobRoot.Velocity = Vector3.zero
+					MobRoot.RotVelocity = Vector3.zero
+					MobRoot.CFrame = TargetCFrame
+				end)
+			end
+		end
+	end
+end)
+Tab:AddToggle({
+    Name = "Tự động hỗ trợ bring quái",
+    Default = true,
+    Callback = function(v)
+        getgenv().AntiDie = v
+        spawn(function()
+            while getgenv().AntiDie do
+                task.wait()
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    char.HumanoidRootPart.CFrame = CFrame.new(-2.70337963, 673.660217, -18.3872433, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+                    char.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+                end
+            end
+        end)
+    end
+})
+Tab:AddToggle({
+	Name = "Auto energy blast",
+	Default = false,
+	Callback = function(v)
+
+		AutoFarm = v
+
+		task.spawn(function()
+
+			while AutoFarm do
+
+				if not FightingGarriot then
+
+					pcall(function()
+
+						local eventFolder =
+							workspace:FindFirstChild("World Mobs")
+							and workspace["World Mobs"]:FindFirstChild("Event Mobs")
+
+						-- Chỉ farm khi Event Mobs có mob
+						if eventFolder and #eventFolder:GetChildren() > 0 then
+
+							local target = GetTarget()
+
+							if target then
+
+								LockRemote:FireServer(target)
+
+								local pos =
+									target.HumanoidRootPart.Position
+
+								local args = {
+									{
+										Camera = workspace.CurrentCamera.CFrame,
+										SkillId = "101",
+										Began = true,
+										CFrame = CFrame.new(pos),
+										["Typ\208\181"] = 1,
+										Aim = pos
+									}
+								}
+
+								SkillRemote:FireServer(unpack(args))
+
+							end
+						end
+					end)
+
+				end
+
+				task.wait(0.08)
+			end
+		end)
+	end
+})
+Tab:AddToggle({
+	Name = "Khoá chặt tất cả quái",
+	Default = true,
+	Callback = function(Value)
+		getgenv().AutoLock = Value
+
+		task.spawn(function()
+			while getgenv().AutoLock do
+				local worldMobs = workspace:FindFirstChild("World Mobs")
+
+				if worldMobs then
+					for _, folder in ipairs(worldMobs:GetChildren()) do
+						for _, mob in ipairs(folder:GetChildren()) do
+							if mob:IsA("Model") then
+								game:GetService("ReplicatedStorage")
+									.Packages._Index["sleitnick_knit@1.4.7"]
+									.knit.Services.SkillManager.RE.LockedOnChanged
+									:FireServer(mob)
+
+								task.wait(0.05)
+							end
+						end
+					end
+				end
+
+				task.wait(0.01)
+			end
+		end)
+	end
+})
+local AutoNextArea = true
+local AutoNextAreaLoop
+
+Tab:AddToggle({
+	Name = "tự động skip",
+	Default = true,
+	Callback = function(Value)
+		AutoNextArea = Value
+
+		if Value and not AutoNextAreaLoop then
+			AutoNextAreaLoop = task.spawn(function()
+				while true do
+					if AutoNextArea then
+						pcall(function()
+							workspace:WaitForChild("Dungeon")
+								:WaitForChild("Stages")
+								:WaitForChild("0")
+								:WaitForChild("NextArea")
+								:WaitForChild("DungeonNextAreaPad")
+								:WaitForChild("RE")
+								:WaitForChild("Interact")
+								:FireServer()
+						end)
+					end
+					task.wait(0.1)
+				end
+			end)
+		end
+	end
+})
+local SpamSkill108 = true
+
+Tab:AddToggle({
+	Name = "Tự động phá huỷ",
+	Default = true,
+	Callback = function(Value)
+		SpamSkill108 = Value
+
+		if SpamSkill108 then
+			task.spawn(function()
+				while SpamSkill108 do
+					local args = {
+						{
+							Camera = CFrame.new(
+								74.2727279663086, 251.0009002685547, -28.747745513916016,
+								-0.9511321783065796, -0.044049736112356186, 0.3056260347366333,
+								0, 0.9897724390029907, 0.14265543222427368,
+								-0.308784157037735, 0.13568417727947235, -0.9414043426513672
+							),
+							SkillId = "108",
+							Began = true,
+							CFrame = CFrame.new(70.45240020751953, 247.81771850585938, -16.98019027709961),
+							["Typ\208\181"] = 1,
+							Aim = vector.create(70.45240020751953, 247.81771850585938, -66.98019409179688)
+						}
+					}
+
+					game:GetService("ReplicatedStorage")
+						:WaitForChild("Remotes")
+						:WaitForChild("SkillRemote")
+						:FireServer(unpack(args))
+
+					task.wait(0.01) -- chỉnh tốc độ spam
+				end
+			end)
+		end
+	end
+})
+local SpamSkill108 = true
+
+Tab:AddToggle({
+	Name = "mmm",
+	Default = false,
+	Callback = function(Value)
+		SpamSkill108 = Value
+
+		if SpamSkill108 then
+			task.spawn(function()
+				while SpamSkill108 do
+					local args = {
+						{
+							Camera = CFrame.new(
+								74.2727279663086, 251.0009002685547, -28.747745513916016,
+								-0.9511321783065796, -0.044049736112356186, 0.3056260347366333,
+								0, 0.9897724390029907, 0.14265543222427368,
+								-0.308784157037735, 0.13568417727947235, -0.9414043426513672
+							),
+							SkillId = "1",
+							Began = true,
+							CFrame = CFrame.new(70.45240020751953, 247.81771850585938, -16.98019027709961),
+							["Typ\208\181"] = 1,
+							Aim = vector.create(70.45240020751953, 247.81771850585938, -66.98019409179688)
+						}
+					}
+
+					game:GetService("ReplicatedStorage")
+						:WaitForChild("Remotes")
+						:WaitForChild("SkillRemote")
+						:FireServer(unpack(args))
+
+					task.wait(0.01) -- chỉnh tốc độ spam
+				end
+			end)
+		end
+	end
+})
+local AutoPhePha = true
+
+Tab:AddToggle({
+	Name = "tự động Quái thú",
+	Default = true,
+	Callback = function(Value)
+		AutoPhePha = Value
+
+		task.spawn(function()
+			while AutoPhePha do
+				pcall(function()
+					local player = game.Players.LocalPlayer
+					local charFolder = workspace:FindFirstChild("Characters")
+
+					if charFolder then
+						local char = charFolder:FindFirstChild(player.Name)
+
+						if char and not char:FindFirstChild("TechniqueEffect") then
+							local args = {
+								{
+									Camera = CFrame.new(
+										-28.790475845336914,
+										298.4656677246094,
+										-91.82173156738281,
+										0.8630251884460449,
+										0.06684061139822006,
+										-0.5007192492485046,
+										0,
+										0.9912075996398926,
+										0.1323155164718628,
+										0.5051608085632324,
+										-0.11419162154197693,
+										0.855437159538269
+									),
+									SkillId = "8",
+									Began = true,
+									CFrame = CFrame.new(
+										-20.313318252563477,
+										294.6113586425781,
+										-106.30424499511719,
+										0.863025426864624,
+										0.06684055924415588,
+										-0.5007189512252808,
+										-8.083265612413015e-09,
+										0.9912076592445374,
+										0.1323154717683792,
+										0.5051605105400085,
+										-0.11419161409139633,
+										0.8554373979568481
+									),
+									["Typ\208\181"] = 1,
+									Aim = vector.create(
+										4.722629547119141,
+										287.9955749511719,
+										-149.07611083984375
+									)
+								}
+							}
+
+							game:GetService("ReplicatedStorage")
+								:WaitForChild("Remotes")
+								:WaitForChild("SkillRemote")
+								:FireServer(unpack(args))
+						end
+					end
+				end)
+
+				task.wait(1.5)
+			end
+		end)
+	end
+})
+getgenv().AutoStart = truee
+
+Tab:AddToggle({
+	Name = "Tự động chơi lại ",
+	Default = true,
+	Callback = function(Value)
+		getgenv().AutoStart = Value
+
+		task.spawn(function()
+			local started = false
+
+			while getgenv().AutoStart do
+				task.wait(3.2)
+
+				local worldMobs = workspace:FindFirstChild("World Mobs")
+				local eventMobs = worldMobs and worldMobs:FindFirstChild("Event Mobs")
+				local garriot = eventMobs and eventMobs:FindFirstChild("Garriot")
+
+				if garriot then
+					local humanoid = garriot:FindFirstChildOfClass("Humanoid")
+
+					if humanoid then
+						if humanoid.Health > 0 then
+							started = true
+						end
+
+						if started and humanoid.Health <= 0 then
+							started = false
+
+							game:GetService("StarterGui"):SetCore("SendNotification", {
+								Title = "Auto Start",
+								Text = "Chơi lại ",
+								Duration = 5
+							})
+
+							task.wait(4.5)
+
+							if getgenv().AutoStart then
+								game:GetService("ReplicatedStorage")
+									:WaitForChild("Packages")
+									:WaitForChild("_Index")
+									:WaitForChild("sleitnick_knit@1.4.7")
+									:WaitForChild("knit")
+									:WaitForChild("Services")
+									:WaitForChild("DungeonLobbyService")
+									:WaitForChild("RF")
+									:WaitForChild("StartDungeon")
+									:InvokeServer()
+							end
+						end
+					end
+				end
+			end
+		end)
+	end
+})
+local EventMobs = workspace:WaitForChild("World Mobs"):WaitForChild("Event Mobs")
+local SkillRemote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SkillRemote")
+
+local AutoSkill = true
+local Triggered = true
+
+local function UseSkill()
+	local args = {
+		{
+			Camera = CFrame.new(74.2727279663086, 251.0009002685547, -28.747745513916016, -0.9511321783065796, -0.044049736112356186, 0.3056260347366333, 0, 0.9897724390029907, 0.14265543222427368, -0.308784157037735, 0.13568417727947235, -0.9414043426513672),
+			SkillId = "8",
+			Began = true,
+			CFrame = CFrame.new(70.45240020751953, 247.81771850585938, -16.98019027709961),
+			["Typ\208\181"] = 1,
+			Aim = vector.create(70.45240020751953, 247.81771850585938, -66.98019409179688)
+		}
+	}
+	SkillRemote:FireServer(unpack(args))
+end
+
+Tab:AddToggle({
+	Name = "Auto Event Skill",
+	Default = true,
+	Callback = function(Value)
+		AutoSkill = Value
+		if not Value then
+			Triggered = false
+		end
+	end
+})
+
+task.spawn(function()
+	while task.wait(0.2) do
+		if AutoSkill then
+			local mobCount = #EventMobs:GetChildren()
+			local garriot = EventMobs:FindFirstChild("Garriot")
+
+			if mobCount == 0 or garriot then
+				if not Triggered then
+					Triggered = true
+					UseSkill()
+				end
+			else
+				Triggered = false
+			end
+		end
+	end
+end)
+
+OrionLib:Init()
+local AutoSpiritBomb = true
+
+Tab:AddToggle({
+	Name = "Auto Spirit Bomb",
+	Default = true,
+	Callback = function(Value)
+		AutoSpiritBomb = Value
+
+		if Value then
+			task.spawn(function()
+				while AutoSpiritBomb do
+					local args = {
+						"UniqueSets_1_3",
+						{
+							HoldAnimation = game:GetService("ReplicatedStorage"):WaitForChild("Assets"):WaitForChild("SkillsV2"):WaitForChild("UniqueSets"):WaitForChild("Seijin Instinct"):WaitForChild("Animations"):WaitForChild("Hold_SpiritBomb"),
+							ReleaseAnimation = game:GetService("ReplicatedStorage"):WaitForChild("Assets"):WaitForChild("SkillsV2"):WaitForChild("UniqueSets"):WaitForChild("Seijin Instinct"):WaitForChild("Animations"):WaitForChild("Release_SpiritBomb"),
+							HumCFrame = CFrame.new(-1116.4661865234375, 36.5296745300293, -1579.772705078125, 0.8936062455177307, 0.22706589102745056, -0.38718077540397644, -4.355781513254442e-08, 0.8626028895378113, 0.505881667137146, 0.44885173439979553, -0.4520590007305145, 0.7708273530006409),
+							ResumeOnTimePassed = 0.1,
+							targetPos = vector.create(-1116.4661865234375, 36.5296745300293, -1629.772705078125)
+						},
+						9,
+						true
+					}
+
+					game:GetService("ReplicatedStorage")
+						:WaitForChild("Packages")
+						:WaitForChild("_Index")
+						:WaitForChild("sleitnick_knit@1.4.7")
+						:WaitForChild("knit")
+						:WaitForChild("Services")
+						:WaitForChild("SkillManagerV2")
+						:WaitForChild("RE")
+						:WaitForChild("ExecuteSkill")
+						:FireServer(unpack(args))
+
+					task.wait(0.5) -- chỉnh tốc độ nếu cần
+				end
+			end)
+		end
+	end
+})
+local AutoFarm = true
+
+local LockRemote = game:GetService("ReplicatedStorage")
+    :WaitForChild("Packages")
+    :WaitForChild("_Index")
+    :WaitForChild("sleitnick_knit@1.4.7")
+    :WaitForChild("knit")
+    :WaitForChild("Services")
+    :WaitForChild("SkillManager")
+    :WaitForChild("RE")
+    :WaitForChild("LockedOnChanged")
+
+-- Hàm tìm mob
+local function GetTarget()
+    local world = workspace:FindFirstChild("World Mobs")
+    if not world then return nil end
+
+    local bossFolder = workspace.Misc:FindFirstChild("MobSpawnInfo")
+    local mobFolder = world:FindFirstChild("Mobs")
+    local eventFolder = world:FindFirstChild("Event Mobs")
+
+    -- Boss trước
+    if bossFolder then
+        for _, v in pairs(bossFolder:GetChildren()) do
+            local hum = v:FindFirstChild("Humanoid")
+            if v:FindFirstChild("HumanoidRootPart")
+            and hum
+            and hum.Health > 0 then
+                return v
+            end
+        end
+    end
+
+    -- Event Mob
+    if eventFolder then
+        for _, v in pairs(eventFolder:GetChildren()) do
+            local hum = v:FindFirstChild("Humanoid")
+            if v:FindFirstChild("HumanoidRootPart")
+            and hum
+            and hum.Health > 0 then
+                return v
+            end
+        end
+    end
+
+    -- Mob thường
+    if mobFolder then
+        for _, v in pairs(mobFolder:GetChildren()) do
+            local hum = v:FindFirstChild("Humanoid")
+            if v:FindFirstChild("HumanoidRootPart")
+            and hum
+            and hum.Health > 0 then
+                return v
+            end
+        end
+    end
+
+    return nil
+end
+
+Tab:AddToggle({
+    Name = "Tự động energy blast",
+    Default = true,
+    Callback = function(v)
+        AutoFarm = v
+
+        task.spawn(function()
+            while AutoFarm do
+                pcall(function()
+                    local target = GetTarget()
+
+                    if target then
+                        -- Lock vào target hiện tại
+                        LockRemote:FireServer(target)
+
+                        local pos = target.HumanoidRootPart.Position
+
+                        local args = {
+                            {
+                                Camera = workspace.CurrentCamera.CFrame,
+                                SkillId = "101",
+                                Began = true,
+                                CFrame = CFrame.new(pos),
+                                ["Typ\208\181"] = 1,
+                                Aim = pos
+                            }
+                        }
+
+                        game:GetService("ReplicatedStorage")
+                            :WaitForChild("Remotes")
+                            :WaitForChild("SkillRemote")
+                            :FireServer(unpack(args))
+                    end
+                end)
+
+                task.wait(0.01)
+            end
+        end)
+    end
+})
+local AutoSkill = true
+
+Tab:AddToggle({
+	Name = "tự động Skill ",
+	Default = true,
+	Callback = function(Value)
+		AutoSkill = Value
+
+		if Value then
+			task.spawn(function()
+				while AutoSkill do
+					local args = {
+						"Weapons_20_3",
+						{
+							TargetPos = vector.create(2170.0126953125, 588.9179077148438, -3238.490234375)
+						},
+						3
+					}
+
+					game:GetService("ReplicatedStorage")
+						:WaitForChild("Packages")
+						:WaitForChild("_Index")
+						:WaitForChild("sleitnick_knit@1.4.7")
+						:WaitForChild("knit")
+						:WaitForChild("Services")
+						:WaitForChild("SkillManagerV2")
+						:WaitForChild("RE")
+						:WaitForChild("ExecuteSkill")
+						:FireServer(unpack(args))
+
+					task.wait(0.01)
+				end
+			end)
+		end
+	end
+})
+local AutoSpiritBomb = true
+
+Tab:AddToggle({
+	Name = "tự động Ego",
+	Default = true,
+	Callback = function(Value)
+		AutoSpiritBomb = Value
+
+		if Value then
+			task.spawn(function()
+				while AutoSpiritBomb do
+					local args = {
+						"UniqueSets_1_3",
+						{
+							HoldAnimation = game:GetService("ReplicatedStorage"):WaitForChild("Assets"):WaitForChild("SkillsV2"):WaitForChild("UniqueSets"):WaitForChild("Seijin Instinct"):WaitForChild("Animations"):WaitForChild("Hold_SpiritBomb"),
+							ReleaseAnimation = game:GetService("ReplicatedStorage"):WaitForChild("Assets"):WaitForChild("SkillsV2"):WaitForChild("UniqueSets"):WaitForChild("Seijin Instinct"):WaitForChild("Animations"):WaitForChild("Release_SpiritBomb"),
+							HumCFrame = CFrame.new(-1116.4661865234375, 36.5296745300293, -1579.772705078125, 0.8936062455177307, 0.22706589102745056, -0.38718077540397644, -4.355781513254442e-08, 0.8626028895378113, 0.505881667137146, 0.44885173439979553, -0.4520590007305145, 0.7708273530006409),
+							ResumeOnTimePassed = 0.1,
+							targetPos = vector.create(-1116.4661865234375, 36.5296745300293, -1629.772705078125)
+						},
+						9,
+						false
+					}
+
+					game:GetService("ReplicatedStorage")
+						:WaitForChild("Packages")
+						:WaitForChild("_Index")
+						:WaitForChild("sleitnick_knit@1.4.7")
+						:WaitForChild("knit")
+						:WaitForChild("Services")
+						:WaitForChild("SkillManagerV2")
+						:WaitForChild("RE")
+						:WaitForChild("ExecuteSkill")
+						:FireServer(unpack(args))
+
+					task.wait(0.1) -- chỉnh tốc độ nếu cần
+				end
+			end)
+		end
+	end
+})
+
+local SelectedTool = 2
+local AutoEquipTools = false
+
+local Dropdown = Tab:AddDropdown({
+	Name = "Tự động trang bị kiếm",
+	Default = "2",
+	Options = {"1","2","3","4","5","6"},
+	Callback = function(Value)
+		SelectedTool = tonumber(Value)
+	end
+})
+
+Tab:AddToggle({
+	Name = "trang bị ",
+	Default = false,
+	Callback = function(Value)
+		AutoEquipTools = Value
+
+		if Value then
+			task.spawn(function()
+				while AutoEquipTools do
+					local args = {
+						SelectedTool
+					}
+
+					game:GetService("ReplicatedStorage")
+						:WaitForChild("Packages")
+						:WaitForChild("_Index")
+						:WaitForChild("sleitnick_knit@1.4.7")
+						:WaitForChild("knit")
+						:WaitForChild("Services")
+						:WaitForChild("ToolService")
+						:WaitForChild("RE")
+						:WaitForChild("UpdatePlayerToolbarSelection")
+						:FireServer(unpack(args))
+
+					task.wait(0.1)
+				end
+			end)
+		end
+	end
+})
+local AutoPhePha = true
+
+Tab:AddToggle({
+	Name = "Auto Phê Pha V2",
+	Default = true,
+	Callback = function(Value)
+		AutoPhePha = Value
+
+		task.spawn(function()
+			while AutoPhePha do
+				pcall(function()
+					local player = game.Players.LocalPlayer
+					local charFolder = workspace:FindFirstChild("Characters")
+
+					if charFolder then
+						local char = charFolder:FindFirstChild(player.Name)
+
+						if char and not char:FindFirstChild("Mode") then
+							local args = {
+								{
+									Camera = CFrame.new(
+										-28.790475845336914,
+										298.4656677246094,
+										-91.82173156738281,
+										0.8630251884460449,
+										0.06684061139822006,
+										-0.5007192492485046,
+										0,
+										0.9912075996398926,
+										0.1323155164718628,
+										0.5051608085632324,
+										-0.11419162154197693,
+										0.855437159538269
+									),
+									SkillId = "10",
+									Began = true,
+									CFrame = CFrame.new(
+										-20.313318252563477,
+										294.6113586425781,
+										-106.30424499511719,
+										0.863025426864624,
+										0.06684055924415588,
+										-0.5007189512252808,
+										-8.083265612413015e-09,
+										0.9912076592445374,
+										0.1323154717683792,
+										0.5051605105400085,
+										-0.11419161409139633,
+										0.8554373979568481
+									),
+									["Typ\208\181"] = 1,
+									Aim = vector.create(
+										4.722629547119141,
+										287.9955749511719,
+										-149.07611083984375
+									)
+								}
+							}
+
+							game:GetService("ReplicatedStorage")
+								:WaitForChild("Remotes")
+								:WaitForChild("SkillRemote")
+								:FireServer(unpack(args))
+						end
+					end
+				end)
+
+				task.wait(1.5)
+			end
+		end)
+	end
+})
+local AutoNextArea = true
+local AutoNextAreaLoop
+
+Tab:AddToggle({
+	Name = "Auto Next Area",
+	Default = true,
+	Callback = function(Value)
+		AutoNextArea = Value
+
+		if Value and not AutoNextAreaLoop then
+			AutoNextAreaLoop = task.spawn(function()
+				while true do
+					if AutoNextArea then
+						pcall(function()
+							workspace:WaitForChild("Dungeon")
+								:WaitForChild("Stages")
+								:WaitForChild("0")
+								:WaitForChild("NextArea")
+								:WaitForChild("DungeonNextAreaPad")
+								:WaitForChild("RE")
+								:WaitForChild("Interact")
+								:FireServer()
+						end)
+					end
+					task.wait(0.1)
+				end
+			end)
+		end
+	end
+})
+local AutoNextArea = true
+local AutoNextAreaLoop
+
+Tab:AddToggle({
+	Name = "Auto Next Area",
+	Default = true,
+	Callback = function(Value)
+		AutoNextArea = Value
+
+		if Value and not AutoNextAreaLoop then
+			AutoNextAreaLoop = task.spawn(function()
+				while true do
+					if AutoNextArea then
+						pcall(function()
+							workspace:WaitForChild("Dungeon")
+								:WaitForChild("Stages")
+								:WaitForChild("0")
+								:WaitForChild("NextArea")
+								:WaitForChild("DungeonNextAreaPad")
+								:WaitForChild("RE")
+								:WaitForChild("Interact")
+								:FireServer()
+						end)
+					end
+					task.wait(0.1)
+				end
+			end)
+		end
+	end
+})
+local AutoNextArea = false
+
+Tab:AddToggle({
+    Name = "Auto NextArea Proximity",
+    Default = false,
+    Callback = function(Value)
+        AutoNextArea = Value
+
+        if Value then
+            task.spawn(function()
+                while AutoNextArea do
+                    local stage = workspace:FindFirstChild("Dungeon")
+                        and workspace.Dungeon:FindFirstChild("Stages")
+                        and workspace.Dungeon.Stages:FindFirstChild("0")
+
+                    if stage then
+                        local prompt = stage.NextArea.Part.Attachment:FindFirstChild("ProximityPrompt")
+                        if prompt then
+                            pcall(function()
+                                fireproximityprompt(prompt)
+                            end)
+                        end
+                    end
+
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+OrionLib:Init()
